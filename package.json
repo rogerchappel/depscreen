@@ -3,20 +3,53 @@
   "version": "0.1.0",
   "description": "Local dependency review CLI for agent-built JavaScript projects.",
   "type": "module",
-  "main": "./src/index.js",
+  "main": "./dist/index.js",
   "exports": {
-    ".": "./src/index.js"
+    ".": "./dist/index.js"
+  },
+  "bin": {
+    "depscreen": "./dist/cli.js"
   },
   "files": [
-    "src",
+    "dist",
+    "examples",
     "README.md"
   ],
   "scripts": {
-    "test": "node --test",
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "pretest": "npm run build",
+    "test": "node --test dist/tests/**/*.test.js",
+    "smoke": "bash scripts/smoke.sh",
     "package:smoke": "npm pack --dry-run",
-    "release:check": "npm test && npm run package:smoke"
+    "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke",
+    "prepublishOnly": "npm run release:check"
   },
-  "keywords": [],
+  "keywords": [
+    "dependencies",
+    "dependency-review",
+    "supply-chain",
+    "security",
+    "cli",
+    "package-json",
+    "lockfile",
+    "agents"
+  ],
   "author": "Roger Chappel",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rogerchappel/depscreen.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rogerchappel/depscreen/issues"
+  },
+  "homepage": "https://github.com/rogerchappel/depscreen#readme",
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "typescript": "^5.8.3"
+  }
 }
