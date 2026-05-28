@@ -9,7 +9,10 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Added
 
-- Initial project setup.
+- Initial local dependency review CLI with JSON and text scan output.
+- Risk checks for unpinned ranges, `latest` tags, lifecycle scripts, package
+  manager mismatches, and missing lockfiles.
+- CLI smoke coverage and release readiness checks.
 
 ## Release Links
 

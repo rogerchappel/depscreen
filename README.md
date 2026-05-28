@@ -1,4 +1,4 @@
-# ../depscreen
+# depscreen
 
 Local dependency review CLI for agent-built JavaScript projects.
 
@@ -9,20 +9,23 @@ security posture before using it in production.
 
 ## Install
 
-Replace this section with the generated repository's installation steps.
-
 ```sh
-pnpm install
+npm install
+npm run build
 ```
 
 ## Use
 
-Replace this section with the smallest useful example for the generated
-repository.
-
 ```sh
-pnpm dev
+depscreen scan .
+depscreen scan tests/fixtures/risky --format json
+depscreen scan tests/fixtures/risky --fail-on high
 ```
+
+`scan` reviews local package manifests and lockfiles for risky dependency
+patterns such as unpinned ranges, `latest` tags, lifecycle scripts, and package
+manager mismatches. Passing `--fail-on <severity>` exits non-zero when findings
+at that severity or higher are present.
 
 ## Verify
 
@@ -33,6 +36,15 @@ bash scripts/validate.sh
 ```
 
 `scripts/validate.sh` runs the repository's standard local checks when they are defined and will also run `agent-qc ready` when `agent-qc` is installed. Missing `agent-qc` is treated as a skip, not a failure.
+
+For release readiness, run:
+
+```sh
+npm run release:check
+```
+
+`release:check` type-checks, runs tests, exercises the CLI smoke test, and
+performs an npm pack dry run.
 
 ## Contributing
 
