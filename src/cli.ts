@@ -46,22 +46,22 @@ async function main(argv: string[]): Promise<number> {
   }
 
   if (command === 'diff') {
-    const positional = args.filter((arg) => !arg.startsWith('-'));
-    if (positional.length < 2) {
+    const positionalArgs = collectPositional(args);
+    if (positionalArgs.length < 2) {
       throw new Error('diff requires baseline and current snapshot paths');
     }
     const options = parseOptions(args, defaultOptions);
-    const result = diffSnapshots(await readSnapshot(positional[0]), await readSnapshot(positional[1]));
+    const result = diffSnapshots(await readSnapshot(positionalArgs[0]), await readSnapshot(positionalArgs[1]));
     await writeOutput(options.output, formatReport(result, options.format));
     return shouldFail(result.findings, options.failOn) ? 1 : 0;
   }
 
-  const positional = args.filter((arg) => !arg.startsWith('-'));
-  if (positional.length < 1) {
+  const positionalArgs = collectPositional(args);
+  if (positionalArgs.length < 1) {
     throw new Error('report requires a depscreen JSON result path');
   }
   const options = parseOptions(args, defaultOptions);
-  const result = await readReportable(positional[0]);
+  const result = await readReportable(positionalArgs[0]);
   await writeOutput(options.output, formatReport(result, options.format));
   return shouldFail(result.findings, options.failOn) ? 1 : 0;
 }
@@ -91,6 +91,21 @@ function parseOptions(args: string[], defaults: Options): Options {
     }
   }
   return options;
+}
+
+function collectPositional(args: string[]): string[] {
+  const values: string[] = [];
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (!arg.startsWith('-')) {
+      values.push(arg);
+      continue;
+    }
+    if (['--root', '--output', '-o', '--format', '--fail-on'].includes(arg)) {
+      index += 1;
+    }
+  }
+  return values;
 }
 
 function requireValue(flag: string, value: string | undefined): string {
