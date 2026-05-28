@@ -1,0 +1,13 @@
+{
+  "name": "risky-project",
+  "version": "1.0.0",
+  "dependencies": {
+    "alpha": "latest",
+    "beta": "https://example.com/beta.tgz",
+    "gamma": "*",
+    "missing": "^1.0.0"
+  },
+  "devDependencies": {
+    "local-tool": "file:../local-tool"
+  }
+}
