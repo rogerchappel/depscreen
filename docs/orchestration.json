@@ -1,0 +1,26 @@
+{
+  "project": "depscreen",
+  "status": "release-candidate",
+  "defaultBranch": "main",
+  "releaseCheck": "npm run release:check",
+  "commands": [
+    "depscreen snapshot --root . --output depscreen.lock.json",
+    "depscreen scan --root . --format markdown --output DEPENDENCIES.md",
+    "depscreen scan --root . --fail-on high",
+    "depscreen diff baseline.json current.json --format markdown",
+    "depscreen report depscreen-result.json --output DEPENDENCY_REVIEW.md"
+  ],
+  "safety": {
+    "network": "none for core checks",
+    "telemetry": false,
+    "publishing": "manual",
+    "findingSemantics": "review prompts, not proof of safety"
+  },
+  "releaseGate": [
+    "npm install",
+    "npm run check",
+    "npm test",
+    "npm run smoke",
+    "npm pack --dry-run"
+  ]
+}

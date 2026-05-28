@@ -12,8 +12,11 @@
   },
   "files": [
     "dist",
-    "examples",
-    "README.md"
+    "docs",
+    "safety",
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE_NOTES.md"
   ],
   "scripts": {
     "build": "tsc",
