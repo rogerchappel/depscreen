@@ -1,0 +1,24 @@
+lockfileVersion: '9.0'
+
+importers:
+  .:
+    dependencies:
+      '@scope/pkg':
+        specifier: 1.2.3
+        version: 1.2.3
+      plain:
+        specifier: ~4.5.6
+        version: 4.5.6
+
+packages:
+  /@scope/pkg@1.2.3:
+    resolution:
+      tarball: https://registry.npmjs.org/@scope/pkg/-/pkg-1.2.3.tgz
+
+  /plain@4.5.6:
+    resolution:
+      tarball: https://registry.npmjs.org/plain/-/plain-4.5.6.tgz
+    requiresBuild: true
+
+snapshots:
+  '@scope/pkg@1.2.3': {}

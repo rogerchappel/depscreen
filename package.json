@@ -3,17 +3,20 @@
   "version": "0.1.0",
   "description": "Local dependency review CLI for agent-built JavaScript projects.",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/src/index.js",
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/src/index.js"
   },
   "bin": {
-    "depscreen": "./dist/cli.js"
+    "depscreen": "./dist/src/cli.js"
   },
   "files": [
     "dist",
-    "examples",
-    "README.md"
+    "docs",
+    "safety",
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE_NOTES.md"
   ],
   "scripts": {
     "build": "tsc",

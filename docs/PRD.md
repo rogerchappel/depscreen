@@ -1,6 +1,6 @@
 # depscreen PRD
 
-Status: in-progress
+Status: MVP implemented
 
 ## Summary
 
@@ -49,3 +49,20 @@ depscreen report depscreen.json --output DEPENDENCIES.md
 - Fixture-backed tests cover npm and pnpm examples.
 - Exits non-zero on high-risk findings with `--fail-on high`.
 - README explains that heuristics are review prompts, not proof of safety.
+
+## MVP Scope
+
+The initial public build ships:
+
+- deterministic snapshots from `package.json`, `package-lock.json`, and
+  `pnpm-lock.yaml`
+- scan, diff, report, and snapshot CLI commands
+- text, JSON, and Markdown report renderers
+- fixture-backed coverage for npm and pnpm inputs
+- a smoke script for the packaged CLI flow
+
+## Release Risks
+
+- The rules are intentionally conservative and may produce false positives.
+- License and install-script findings depend on lockfile metadata quality.
+- `pnpm-lock.yaml` parsing covers common workspace-free shapes for the MVP.

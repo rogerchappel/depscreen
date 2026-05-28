@@ -9,7 +9,11 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Added
 
-- Initial project setup.
+- Local dependency snapshot generation.
+- `snapshot`, `scan`, `diff`, and `report` CLI commands.
+- npm and pnpm fixture coverage.
+- Text, JSON, and Markdown reports.
+- Release check and smoke verification scripts.
 
 ## Release Links
 
