@@ -2,18 +2,12 @@
 
 ## Supported Versions
 
-Replace this section with the supported versions for `../depscreen`.
-
-Example:
-
-```md
 | Version | Supported |
 | --- | --- |
-| .x | Yes |
-| < .0 | No |
-```
+| 0.x | Best-effort pre-1.0 support |
 
-If the project does not publish versioned releases yet, say that clearly.
+This project has not published a stable 1.0 release yet. Confirm the current
+release and support status before relying on it in production workflows.
 
 ## Reporting a Vulnerability
 
@@ -37,13 +31,13 @@ When a private reporting path is available, include:
 
 Maintainers review good-faith reports as capacity allows.
 
-Do not imply paid support, guaranteed response times, guaranteed fixes, or service-level agreements unless `../depscreen` explicitly provides them.
+Do not imply paid support, guaranteed response times, guaranteed fixes, or service-level agreements unless `depscreen` explicitly provides them.
 
 ## Scope
 
 In scope:
 
-- Vulnerabilities in ../depscreen.
+- Vulnerabilities in depscreen.
 - Insecure default configuration shipped by this project.
 - CI, release, or dependency guidance maintained by this project.
 

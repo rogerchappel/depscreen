@@ -1,27 +1,59 @@
-# ../depscreen
+# depscreen
 
 Local dependency review CLI for agent-built JavaScript projects.
 
 ## Status
 
-This repository is early-stage. Confirm the current support, release, and
-security posture before using it in production.
+This repository is early-stage. `depscreen` is an offline heuristic reviewer,
+not a vulnerability database or proof that dependencies are safe.
 
 ## Install
 
-Replace this section with the generated repository's installation steps.
+From npm, once published:
 
 ```sh
-pnpm install
+npm install --save-dev depscreen
 ```
+
+For local development, clone the repository and run `npm ci`.
 
 ## Use
 
-Replace this section with the smallest useful example for the generated
-repository.
+Create a dependency snapshot:
 
 ```sh
-pnpm dev
+npx depscreen snapshot --root . --output depscreen.lock.json
+```
+
+Scan the current project:
+
+```sh
+npx depscreen scan --root . --format text --fail-on high
+```
+
+Compare two snapshots:
+
+```sh
+npx depscreen diff baseline.json current.json --format markdown
+```
+
+Render a saved JSON result as Markdown:
+
+```sh
+npx depscreen report depscreen.json --format markdown --output DEPENDENCIES.md
+```
+
+Findings are review prompts. The CLI currently flags broad ranges, non-registry
+dependency specs, install/build scripts in parsed lockfiles, missing lockfiles,
+missing license metadata, added dependencies, and lockfile churn.
+
+## Commands
+
+```text
+depscreen snapshot [--root .] [--output depscreen.lock.json]
+depscreen scan [--root .] [--format text|json|markdown] [--output depscreen.json] [--fail-on low|medium|high]
+depscreen diff baseline.json current.json [--format text|json|markdown] [--output depscreen.diff.json] [--fail-on low|medium|high]
+depscreen report depscreen.json [--format text|json|markdown] [--output DEPENDENCIES.md]
 ```
 
 ## Verify
@@ -41,10 +73,7 @@ should be small, reviewable, and verified before review.
 
 ## Security
 
-See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance. Replace
-the default security policy before publishing the generated repository.
-
-These links assume this README has been copied to the generated repository root.
+See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance.
 
 ## License
 

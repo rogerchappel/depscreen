@@ -1,0 +1,26 @@
+lockfileVersion: '9.0'
+
+importers:
+
+  .:
+    dependencies:
+      '@scope/build-me':
+        specifier: 1.0.0
+        version: 1.0.0
+      plain-package:
+        specifier: 1.0.0
+        version: 1.0.0
+
+packages:
+
+  /@scope/build-me@1.0.0:
+    resolution: {integrity: sha512-local}
+    requiresBuild: true
+
+  /plain-package@1.0.0:
+    resolution: {integrity: sha512-local}
+
+snapshots:
+
+  '@scope/build-me@1.0.0': {}
+  plain-package@1.0.0: {}
