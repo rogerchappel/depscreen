@@ -5,19 +5,18 @@
   "type": "module",
   "main": "./dist/src/index.js",
   "exports": {
-    ".": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
-    }
+    ".": "./dist/src/index.js"
   },
   "bin": {
     "depscreen": "./dist/src/cli.js"
   },
   "files": [
-    "dist/src",
+    "dist",
     "docs",
-    "examples",
-    "README.md"
+    "safety",
+    "CHANGELOG.md",
+    "README.md",
+    "RELEASE_NOTES.md"
   ],
   "scripts": {
     "build": "tsc",

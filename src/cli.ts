@@ -1,120 +1,116 @@
 #!/usr/bin/env node
 import path from 'node:path';
-import { diffSnapshotFiles } from './diff.js';
-import { readJsonFile, writeTextFile } from './fs.js';
-import { renderReport } from './report.js';
-import { reachesSeverity, scanProject } from './scan.js';
+import { readReportable, readSnapshot, writeOutput } from './io.js';
+import { formatReport, shouldFail } from './report.js';
+import { diffSnapshots, scanSnapshot } from './rules.js';
 import { createSnapshot } from './snapshot.js';
 import type { OutputFormat, Severity } from './types.js';
 
-interface CliOptions {
+type Command = 'snapshot' | 'scan' | 'diff' | 'report' | 'help';
+
+interface Options {
   root: string;
   output?: string;
   format: OutputFormat;
   failOn?: Severity;
 }
 
+const defaultOptions: Options = {
+  root: '.',
+  format: 'text'
+};
+
 async function main(argv: string[]): Promise<number> {
-  const [command, ...args] = argv;
-
-  try {
-    if (!command || command === '--help' || command === '-h') {
-      printHelp();
-      return command ? 0 : 1;
-    }
-
-    if (command === '--version' || command === '-v') {
-      const packageJson = await readJsonFile<{ version: string }>(new URL('../../package.json', import.meta.url).pathname);
-      process.stdout.write(`${packageJson.version}\n`);
-      return 0;
-    }
-
-    if (command === 'snapshot') {
-      const options = parseOptions(args);
-      const snapshot = await createSnapshot(options.root);
-      await emit(renderReport(snapshot, 'json'), options.output);
-      return 0;
-    }
-
-    if (command === 'scan') {
-      const options = parseOptions(args);
-      const result = await scanProject(options.root);
-      await emit(renderReport(result, options.format), options.output);
-      return options.failOn && reachesSeverity(result.findings, options.failOn) ? 2 : 0;
-    }
-
-    if (command === 'diff') {
-      const options = parseOptions(args, 2);
-      const positional = getPositionals(args);
-      const result = await diffSnapshotFiles(positional[0], positional[1]);
-      await emit(renderReport(result, options.format), options.output);
-      return options.failOn && reachesSeverity(result.findings, options.failOn) ? 2 : 0;
-    }
-
-    if (command === 'report') {
-      const options = parseOptions(args, 1);
-      const [input] = getPositionals(args);
-      const value = await readJsonFile<unknown>(input);
-      await emit(renderReport(value as never, options.format), options.output);
-      return 0;
-    }
-
-    throw new Error(`Unknown command: ${command}`);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`depscreen: ${message}\n`);
-    return 1;
+  const [command = 'help', ...args] = argv;
+  if (command === 'help' || command === '--help' || command === '-h') {
+    process.stdout.write(helpText());
+    return 0;
   }
+  if (!isCommand(command)) {
+    throw new Error(`Unknown command: ${command}`);
+  }
+
+  if (command === 'snapshot') {
+    const options = parseOptions(args, { ...defaultOptions, format: 'json' });
+    const snapshot = await createSnapshot(options.root);
+    await writeOutput(options.output, `${JSON.stringify(snapshot, null, 2)}\n`);
+    return 0;
+  }
+
+  if (command === 'scan') {
+    const options = parseOptions(args, defaultOptions);
+    const snapshot = await createSnapshot(options.root);
+    const result = scanSnapshot(snapshot, path.resolve(options.root));
+    await writeOutput(options.output, formatReport(result, options.format));
+    return shouldFail(result.findings, options.failOn) ? 1 : 0;
+  }
+
+  if (command === 'diff') {
+    const positionalArgs = collectPositional(args);
+    if (positionalArgs.length < 2) {
+      throw new Error('diff requires baseline and current snapshot paths');
+    }
+    const options = parseOptions(args, defaultOptions);
+    const result = diffSnapshots(await readSnapshot(positionalArgs[0]), await readSnapshot(positionalArgs[1]));
+    await writeOutput(options.output, formatReport(result, options.format));
+    return shouldFail(result.findings, options.failOn) ? 1 : 0;
+  }
+
+  const positionalArgs = collectPositional(args);
+  if (positionalArgs.length < 1) {
+    throw new Error('report requires a depscreen JSON result path');
+  }
+  const options = parseOptions(args, defaultOptions);
+  const result = await readReportable(positionalArgs[0]);
+  await writeOutput(options.output, formatReport(result, options.format));
+  return shouldFail(result.findings, options.failOn) ? 1 : 0;
 }
 
-function parseOptions(args: string[], requiredPositionals = 0): CliOptions {
-  const options: CliOptions = {
-    root: process.cwd(),
-    format: 'text'
-  };
-  const positionals: string[] = [];
-
+function parseOptions(args: string[], defaults: Options): Options {
+  const options = { ...defaults };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
+    if (!arg.startsWith('-')) {
+      continue;
+    }
+    const value = args[index + 1];
     if (arg === '--root') {
-      options.root = requireValue(args, (index += 1), arg);
+      options.root = requireValue(arg, value);
+      index += 1;
     } else if (arg === '--output' || arg === '-o') {
-      options.output = requireValue(args, (index += 1), arg);
+      options.output = requireValue(arg, value);
+      index += 1;
     } else if (arg === '--format') {
-      options.format = parseFormat(requireValue(args, (index += 1), arg));
+      options.format = parseFormat(requireValue(arg, value));
+      index += 1;
     } else if (arg === '--fail-on') {
-      options.failOn = parseSeverity(requireValue(args, (index += 1), arg));
-    } else if (arg.startsWith('-')) {
-      throw new Error(`Unknown option: ${arg}`);
+      options.failOn = parseSeverity(requireValue(arg, value));
+      index += 1;
     } else {
-      positionals.push(arg);
+      throw new Error(`Unknown option: ${arg}`);
     }
   }
-
-  if (positionals.length < requiredPositionals) {
-    throw new Error(`Expected ${requiredPositionals} positional argument(s), got ${positionals.length}`);
-  }
-
   return options;
 }
 
-function getPositionals(args: string[]): string[] {
-  const positionals: string[] = [];
+function collectPositional(args: string[]): string[] {
+  const values: string[] = [];
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
-    if (arg === '--root' || arg === '--output' || arg === '-o' || arg === '--format' || arg === '--fail-on') {
+    if (!arg.startsWith('-')) {
+      values.push(arg);
+      continue;
+    }
+    if (['--root', '--output', '-o', '--format', '--fail-on'].includes(arg)) {
       index += 1;
-    } else if (!arg.startsWith('-')) {
-      positionals.push(arg);
     }
   }
-  return positionals;
+  return values;
 }
 
-function requireValue(args: string[], index: number, flag: string): string {
-  const value = args[index];
-  if (!value) {
-    throw new Error(`Missing value for ${flag}`);
+function requireValue(flag: string, value: string | undefined): string {
+  if (!value || value.startsWith('-')) {
+    throw new Error(`${flag} requires a value`);
   }
   return value;
 }
@@ -133,25 +129,33 @@ function parseSeverity(value: string): Severity {
   throw new Error(`Invalid severity: ${value}`);
 }
 
-async function emit(value: string, output?: string): Promise<void> {
-  if (output) {
-    await writeTextFile(path.resolve(output), value);
-    return;
-  }
-  process.stdout.write(value);
+function isCommand(command: string): command is Command {
+  return ['snapshot', 'scan', 'diff', 'report'].includes(command);
 }
 
-function printHelp(): void {
-  process.stdout.write(`depscreen
+function helpText(): string {
+  return `depscreen
 
 Usage:
-  depscreen snapshot [--root .] [--output depscreen.lock.json]
-  depscreen scan [--root .] [--format text|json|markdown] [--output depscreen.json] [--fail-on low|medium|high]
-  depscreen diff baseline.json current.json [--format text|json|markdown] [--output depscreen.diff.json] [--fail-on low|medium|high]
-  depscreen report depscreen.json [--format text|json|markdown] [--output DEPENDENCIES.md]
+  depscreen snapshot --root . --output depscreen.lock.json
+  depscreen scan --root . --format text|json|markdown [--fail-on high]
+  depscreen diff baseline.json current.json --format markdown
+  depscreen report depscreen.json --output DEPENDENCIES.md
 
-depscreen is local-only and uses heuristic findings as review prompts.
-`);
+Commands:
+  snapshot  Write a deterministic local dependency snapshot.
+  scan      Scan package.json and supported lockfiles for review warnings.
+  diff      Compare two depscreen snapshots.
+  report    Render a saved scan or diff JSON result.
+`;
 }
 
-process.exitCode = await main(process.argv.slice(2));
+main(process.argv.slice(2))
+  .then((code) => {
+    process.exitCode = code;
+  })
+  .catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`depscreen: ${message}\n`);
+    process.exitCode = 2;
+  });

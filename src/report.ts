@@ -1,146 +1,106 @@
-import type { DiffResult, Finding, OutputFormat, ProjectSnapshot, ScanResult } from './types.js';
+import type { DiffResult, Finding, OutputFormat, ScanResult, Severity } from './types.js';
 
-type Reportable = ProjectSnapshot | ScanResult | DiffResult;
+export type Reportable = ScanResult | DiffResult;
 
-export function renderReport(value: Reportable, format: OutputFormat): string {
+export function formatReport(result: Reportable, format: OutputFormat): string {
   if (format === 'json') {
-    return `${JSON.stringify(value, null, 2)}\n`;
+    return `${JSON.stringify(result, null, 2)}\n`;
+  }
+  if (format === 'markdown') {
+    return formatMarkdown(result);
+  }
+  return formatText(result);
+}
+
+export function shouldFail(findings: Finding[], failOn?: Severity): boolean {
+  if (!failOn) {
+    return false;
+  }
+  const threshold = severityRank(failOn);
+  return findings.some((finding) => severityRank(finding.severity) >= threshold);
+}
+
+function formatText(result: Reportable): string {
+  if ('summary' in result) {
+    const lines = [
+      'depscreen scan report',
+      `dependencies: ${result.summary.dependencyCount}`,
+      `locked packages: ${result.summary.lockedPackageCount}`,
+      `findings: ${result.findings.length} (${result.summary.high} high, ${result.summary.medium} medium, ${result.summary.low} low)`,
+      ''
+    ];
+    return `${lines.join('\n')}${formatFindingText(result.findings)}`;
   }
 
-  if (isScanResult(value)) {
-    return format === 'markdown' ? renderScanMarkdown(value) : renderScanText(value);
-  }
-
-  if (isDiffResult(value)) {
-    return format === 'markdown' ? renderDiffMarkdown(value) : renderDiffText(value);
-  }
-
-  return format === 'markdown' ? renderSnapshotMarkdown(value) : renderSnapshotText(value);
-}
-
-function renderScanText(result: ScanResult): string {
   const lines = [
-    'depscreen scan',
-    `Root: ${result.root}`,
-    `Dependencies: ${result.summary.dependencyCount}`,
-    `Locked packages: ${result.summary.lockedPackageCount}`,
-    `Findings: ${result.findings.length} (${result.summary.high} high, ${result.summary.medium} medium, ${result.summary.low} low)`,
+    'depscreen diff report',
+    `dependencies: ${result.baseline.dependencyCount} -> ${result.current.dependencyCount}`,
+    `locked packages: ${result.baseline.lockedPackageCount} -> ${result.current.lockedPackageCount}`,
+    `added dependencies: ${result.addedDependencies.length}`,
+    `removed dependencies: ${result.removedDependencies.length}`,
+    `changed dependencies: ${result.changedDependencies.length}`,
+    `package churn: ${result.packageChurn}`,
+    `findings: ${result.findings.length}`,
     ''
   ];
-  appendTextFindings(lines, result.findings);
-  return `${lines.join('\n')}\n`;
+  return `${lines.join('\n')}${formatFindingText(result.findings)}`;
 }
 
-function renderDiffText(result: DiffResult): string {
-  const lines = [
-    'depscreen diff',
-    `Dependencies: ${result.baseline.dependencyCount} -> ${result.current.dependencyCount}`,
-    `Locked packages: ${result.baseline.lockedPackageCount} -> ${result.current.lockedPackageCount}`,
-    `Added dependencies: ${result.addedDependencies.length}`,
-    `Removed dependencies: ${result.removedDependencies.length}`,
-    `Changed dependencies: ${result.changedDependencies.length}`,
-    `Package churn: ${result.packageChurn}`,
-    ''
-  ];
-  appendTextFindings(lines, result.findings);
-  return `${lines.join('\n')}\n`;
-}
-
-function renderSnapshotText(snapshot: ProjectSnapshot): string {
-  return [
-    'depscreen snapshot',
-    `Project: ${snapshot.rootName ?? 'unknown'}`,
-    `Package manager: ${snapshot.packageManager ?? 'unknown'}`,
-    `Dependencies: ${snapshot.dependencies.length}`,
-    `Lockfile: ${snapshot.lockfile.kind}`,
-    `Locked packages: ${snapshot.lockfile.packageCount}`,
-    ''
-  ].join('\n');
-}
-
-function renderScanMarkdown(result: ScanResult): string {
-  const lines = [
-    '# Dependency Review',
-    '',
-    `- Root: \`${result.root}\``,
-    `- Dependencies: ${result.summary.dependencyCount}`,
-    `- Locked packages: ${result.summary.lockedPackageCount}`,
-    `- Findings: ${result.findings.length} (${result.summary.high} high, ${result.summary.medium} medium, ${result.summary.low} low)`,
-    '',
-    '## Findings',
-    ''
-  ];
-  appendMarkdownFindings(lines, result.findings);
-  return `${lines.join('\n')}\n`;
-}
-
-function renderDiffMarkdown(result: DiffResult): string {
-  const lines = [
-    '# Dependency Diff',
-    '',
-    `- Dependencies: ${result.baseline.dependencyCount} -> ${result.current.dependencyCount}`,
-    `- Locked packages: ${result.baseline.lockedPackageCount} -> ${result.current.lockedPackageCount}`,
-    `- Added dependencies: ${result.addedDependencies.length}`,
-    `- Removed dependencies: ${result.removedDependencies.length}`,
-    `- Changed dependencies: ${result.changedDependencies.length}`,
-    `- Package churn: ${result.packageChurn}`,
-    '',
-    '## Findings',
-    ''
-  ];
-  appendMarkdownFindings(lines, result.findings);
-  return `${lines.join('\n')}\n`;
-}
-
-function renderSnapshotMarkdown(snapshot: ProjectSnapshot): string {
-  return [
-    '# Dependency Snapshot',
-    '',
-    `- Project: ${snapshot.rootName ?? 'unknown'}`,
-    `- Package manager: ${snapshot.packageManager ?? 'unknown'}`,
-    `- Dependencies: ${snapshot.dependencies.length}`,
-    `- Lockfile: ${snapshot.lockfile.kind}`,
-    `- Locked packages: ${snapshot.lockfile.packageCount}`,
-    ''
-  ].join('\n');
-}
-
-function appendTextFindings(lines: string[], findings: Finding[]): void {
+function formatFindingText(findings: Finding[]): string {
   if (findings.length === 0) {
-    lines.push('No findings.');
-    return;
+    return 'No deterministic dependency review warnings found.\n';
   }
-
-  for (const finding of findings) {
-    lines.push(`[${finding.severity}] ${finding.title}`);
-    lines.push(`  Detail: ${finding.detail}`);
-    lines.push(`  Recommendation: ${finding.recommendation}`);
-  }
+  return findings.map((finding) => [
+    `[${finding.severity}] ${finding.title}${finding.packageName ? `: ${finding.packageName}` : ''}`,
+    `  ${finding.detail}`,
+    `  Recommendation: ${finding.recommendation}`
+  ].join('\n')).join('\n\n') + '\n';
 }
 
-function appendMarkdownFindings(lines: string[], findings: Finding[]): void {
-  if (findings.length === 0) {
-    lines.push('No findings.');
-    return;
+function formatMarkdown(result: Reportable): string {
+  const lines = ['# depscreen report', ''];
+  if ('summary' in result) {
+    lines.push(
+      '## Summary',
+      '',
+      `- Dependencies: ${result.summary.dependencyCount}`,
+      `- Locked packages: ${result.summary.lockedPackageCount}`,
+      `- Findings: ${result.findings.length} (${result.summary.high} high, ${result.summary.medium} medium, ${result.summary.low} low)`,
+      ''
+    );
+  } else {
+    lines.push(
+      '## Summary',
+      '',
+      `- Dependencies: ${result.baseline.dependencyCount} -> ${result.current.dependencyCount}`,
+      `- Locked packages: ${result.baseline.lockedPackageCount} -> ${result.current.lockedPackageCount}`,
+      `- Added dependencies: ${result.addedDependencies.length}`,
+      `- Removed dependencies: ${result.removedDependencies.length}`,
+      `- Changed dependencies: ${result.changedDependencies.length}`,
+      `- Package churn: ${result.packageChurn}`,
+      ''
+    );
   }
 
-  for (const finding of findings) {
-    lines.push(`### ${finding.title}`);
-    lines.push('');
-    lines.push(`- Severity: ${finding.severity}`);
-    if (finding.packageName) {
-      lines.push(`- Package: \`${finding.packageName}\``);
-    }
-    lines.push(`- Detail: ${finding.detail}`);
-    lines.push(`- Recommendation: ${finding.recommendation}`);
-    lines.push('');
+  lines.push('## Findings', '');
+  if (result.findings.length === 0) {
+    lines.push('No deterministic dependency review warnings found.', '');
+    return lines.join('\n');
   }
+
+  for (const finding of result.findings) {
+    lines.push(
+      `### ${finding.severity.toUpperCase()}: ${finding.title}${finding.packageName ? ` (${finding.packageName})` : ''}`,
+      '',
+      finding.detail,
+      '',
+      `Recommendation: ${finding.recommendation}`,
+      ''
+    );
+  }
+  return lines.join('\n');
 }
 
-function isScanResult(value: Reportable): value is ScanResult {
-  return 'summary' in value && 'snapshot' in value;
-}
-
-function isDiffResult(value: Reportable): value is DiffResult {
-  return 'addedDependencies' in value && 'packageChurn' in value;
+function severityRank(severity: Severity): number {
+  return severity === 'high' ? 3 : severity === 'medium' ? 2 : 1;
 }

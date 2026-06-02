@@ -1,0 +1,8 @@
+{
+  "name": "pnpm-basic",
+  "version": "1.0.0",
+  "dependencies": {
+    "@scope/pkg": "1.2.3",
+    "plain": "~4.5.6"
+  }
+}

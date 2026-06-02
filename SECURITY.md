@@ -4,10 +4,8 @@
 
 | Version | Supported |
 | --- | --- |
-| 0.x | Best-effort pre-1.0 support |
-
-This project has not published a stable 1.0 release yet. Confirm the current
-release and support status before relying on it in production workflows.
+| 0.1.x | Yes |
+| < 0.1.0 | No |
 
 ## Reporting a Vulnerability
 
@@ -31,7 +29,7 @@ When a private reporting path is available, include:
 
 Maintainers review good-faith reports as capacity allows.
 
-Do not imply paid support, guaranteed response times, guaranteed fixes, or service-level agreements unless `depscreen` explicitly provides them.
+Do not imply paid support, guaranteed response times, guaranteed fixes, or service-level agreements unless `../depscreen` explicitly provides them.
 
 ## Scope
 

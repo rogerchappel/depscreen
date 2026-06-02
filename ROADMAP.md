@@ -6,22 +6,21 @@ contributors, and implementation constraints.
 
 ## Now
 
-- Define the smallest useful project scope.
-- Keep repository setup, documentation, and verification easy for contributors
-  to follow.
-- Ship small, reviewable improvements.
+- Stabilize the first public CLI release.
+- Keep local-first behavior explicit and tested.
+- Improve examples around PR and release checklist usage.
 
 ## Next
 
-- Add the next capabilities that directly support the project's primary users.
-- Improve tests, docs, and examples around the most used workflows.
-- Reduce setup friction discovered during early use.
+- Add workspace-aware pnpm examples.
+- Document CI baseline patterns.
+- Improve lockfile metadata coverage from real-world samples.
 
 ## Later
 
-- Consider larger features after the core workflow is stable.
-- Add automation only where it removes repeated maintainer work.
-- Revisit packaging, deployment, or integration options based on real demand.
+- Add optional registry or audit enrichment behind an explicit network flag.
+- Explore SARIF output if security-review workflows need it.
+- Add integrations only where they preserve local-first defaults.
 
 ## Not Planned
 
