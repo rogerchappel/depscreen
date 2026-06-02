@@ -1,4 +1,4 @@
-import { access, readFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 export async function pathExists(filePath: string): Promise<boolean> {
@@ -18,4 +18,9 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
     const message = error instanceof Error ? error.message : 'invalid JSON';
     throw new Error(`Failed to parse ${path.basename(filePath)}: ${message}`);
   }
+}
+
+export async function writeTextFile(filePath: string, value: string): Promise<void> {
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, value, 'utf8');
 }
