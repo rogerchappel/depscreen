@@ -16,7 +16,8 @@
     "safety",
     "CHANGELOG.md",
     "README.md",
-    "RELEASE_NOTES.md"
+    "RELEASE_NOTES.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc",
