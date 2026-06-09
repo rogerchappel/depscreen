@@ -8,7 +8,7 @@
     ".": "./dist/src/index.js"
   },
   "bin": {
-    "depscreen": "./dist/src/cli.js"
+    "depscreen": "dist/src/cli.js"
   },
   "files": [
     "dist",
@@ -17,7 +17,8 @@
     "CHANGELOG.md",
     "README.md",
     "RELEASE_NOTES.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "build": "tsc",
@@ -43,7 +44,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rogerchappel/depscreen.git"
+    "url": "git+https://github.com/rogerchappel/depscreen.git"
   },
   "bugs": {
     "url": "https://github.com/rogerchappel/depscreen/issues"
