@@ -88,9 +88,11 @@ Run the release check before opening a pull request:
 
 ```sh
 npm run release:check
+npm run package:smoke
 ```
 
-That runs typecheck, tests, smoke coverage, and `npm pack --dry-run`.
+`release:check` runs typecheck, tests, smoke coverage, and the package dry run.
+Run `package:smoke` directly when you only changed npm package contents.
 
 ## Documentation
 
