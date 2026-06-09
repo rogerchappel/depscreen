@@ -104,6 +104,21 @@ That runs typecheck, tests, smoke coverage, and `npm pack --dry-run`.
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting guidance.
 
+## Development
+
+Use the same local checks that back release readiness:
+
+```bash
+npm run check
+npm test
+npm run build
+npm run smoke
+npm run package:smoke
+npm run release:check
+```
+
+Run the narrower commands while iterating, then finish with the broadest available check before opening a PR.
+
 ## License
 
 MIT
