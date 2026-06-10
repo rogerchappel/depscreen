@@ -18,7 +18,8 @@
     "README.md",
     "RELEASE_NOTES.md",
     "LICENSE",
-    "SECURITY.md"
+    "SECURITY.md",
+    "CONTRIBUTING.md"
   ],
   "scripts": {
     "build": "tsc",
