@@ -19,7 +19,8 @@
     "RELEASE_NOTES.md",
     "LICENSE",
     "SECURITY.md",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
   ],
   "scripts": {
     "build": "tsc",
