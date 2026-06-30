@@ -7,6 +7,20 @@ and lockfiles for review prompts, compares snapshots, and renders review notes
 in text, JSON, or Markdown. It is intentionally local-first: no registry calls,
 no telemetry, and no network dependency for the core checks.
 
+
+## Quickstart
+
+Run the tool from a fresh checkout:
+
+```sh
+npm install
+npm run build
+node dist/src/cli.js --help
+npm test
+```
+
+The help command is a quick smoke test for the CLI entrypoint, and `npm test` runs the committed regression suite before you depend on the output.
+
 ## Status
 
 Early public build. The current rules are heuristic review prompts, not proof
