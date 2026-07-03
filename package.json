@@ -30,7 +30,8 @@
     "smoke": "bash scripts/smoke.sh",
     "package:smoke": "npm pack --dry-run",
     "release:check": "npm run check && npm test && npm run smoke && npm run package:smoke",
-    "prepublishOnly": "npm run release:check"
+    "prepublishOnly": "npm run release:check",
+    "lint": "npm run check"
   },
   "keywords": [
     "dependencies",
