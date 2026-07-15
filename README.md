@@ -135,6 +135,13 @@ npm run release:check
 
 Run the narrower commands while iterating, then finish with the broadest available check before opening a PR.
 
+## Limitations and Safety
+
+- Local dependency review CLI for agent-built JavaScript projects; it is designed for local, reviewable developer workflows rather than unattended production automation.
+- Review generated output before using it in commits, releases, issue updates, or connector actions.
+- Avoid placing secrets, private customer data, or unredacted logs in fixtures, examples, or command output.
+- Treat warnings and non-zero exits from `depscreen` as prompts for human review, then rerun the documented verification command after changes.
+
 ## License
 
 MIT
