@@ -120,7 +120,8 @@ run_package_script() {
   esac
 }
 
-printf 'Checking ../depscreen required files...\n'
+repo_name="$(basename "$repo_root")"
+printf 'Checking %s required files...\n' "$repo_name"
 
 check_file "README.md"
 check_file "AGENTS.md"
@@ -129,7 +130,7 @@ check_file "SECURITY.md"
 check_file ".github/pull_request_template.md"
 check_file "scripts/validate.sh"
 
-printf '\nChecking ../depscreen required directories...\n'
+printf '\nChecking %s required directories...\n' "$repo_name"
 
 check_dir ".github"
 check_dir "docs"
