@@ -9,6 +9,8 @@ trap 'rm -rf "$tmp_dir"' EXIT
 
 node dist/src/cli.js snapshot --root tests/fixtures/npm-risky --output "$tmp_dir/snapshot.json"
 node dist/src/cli.js scan --root tests/fixtures/npm-risky --format markdown --output "$tmp_dir/report.md"
+node dist/src/cli.js scan --root tests/fixtures/npm-risky --format json --output "$tmp_dir/result.json"
+node dist/src/cli.js report "$tmp_dir/result.json" --format markdown --output "$tmp_dir/rendered-report.md"
 node dist/src/cli.js diff "$tmp_dir/snapshot.json" "$tmp_dir/snapshot.json" --format text --output "$tmp_dir/diff.txt"
 node dist/src/cli.js report "$tmp_dir/report.md" >/dev/null 2>&1 && {
   echo "Expected report command to reject non-JSON input" >&2
@@ -16,4 +18,6 @@ node dist/src/cli.js report "$tmp_dir/report.md" >/dev/null 2>&1 && {
 }
 
 grep -q "depscreen report" "$tmp_dir/report.md"
+grep -q "# depscreen report" "$tmp_dir/rendered-report.md"
+grep -q "Findings:" "$tmp_dir/rendered-report.md"
 grep -q "package churn: 0" "$tmp_dir/diff.txt"
